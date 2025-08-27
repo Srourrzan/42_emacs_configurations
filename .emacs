@@ -45,3 +45,8 @@
 
 (global-set-key (kbd "M-<up>") 'move-line-up)
 (global-set-key (kbd "M-<down>") 'move-line-down)
+
+(defun ft_term()
+  "Launch `term` using /bin/bash."
+  (interactive)
+  (term "/bin/bash"))
