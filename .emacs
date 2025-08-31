@@ -59,3 +59,32 @@
 							(?\" . ?\")
 							(?\' . ?\')
 							))
+
+(setq switch-to-buffer-in-dedicated-window 'ignore)
+
+(add-hook 'after-init-hook
+          (lambda ()
+            ;;(delete-other-windows) ;; start clean
+
+            ;; Split into top and bottom
+            (let ((top (selected-window))
+                  bottom right)
+              (setq bottom (split-window-below -8)) ;; bottom window
+              (setq right (split-window-right -10))  ;; top-right window
+
+              ;; Top-left = *scratch*
+              (select-window top)
+              (switch-to-buffer "*scratch*")
+
+              ;; Top-right = Dired
+              (select-window right)
+              (dired default-directory)
+
+              ;; Bottom = terminal
+              (select-window bottom)
+              (if (fboundp 'vterm)
+                  (vterm)
+                (ansi-term (getenv "SHELL")))
+			  ;; Lock this window to always show the terminal buffer
+			  (set-window-dedicated-p (selected-window) t)
+			  )))
