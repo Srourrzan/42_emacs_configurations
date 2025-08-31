@@ -50,3 +50,12 @@
   "Launch `term` using /bin/bash."
   (interactive)
   (term "/bin/bash"))
+
+(electric-pair-mode 1)
+(setq electric-pair-pairs '(
+							(?\{ . ?\})
+							(?\( . ?\))
+							(?\[ . ?\])
+							(?\" . ?\")
+							(?\' . ?\')
+							))
