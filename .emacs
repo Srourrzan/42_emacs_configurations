@@ -4,6 +4,19 @@
 
 ;;; Code:
 
+(require 'package)
+
+;; Add MELPA and other important archives
+(setq package-archives
+	  '(("gnu"   . "https://elpa.gnu.org/packages/")
+		("melpa" . "https://melpa.org/packages/")
+		("org"   . "https://orgmode.org/elpa/")))
+
+(package-initialize)
+
+(unless package-archive-contents
+  (package-refresh-contents))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -14,7 +27,7 @@
 (setq-default indent-tabs-mode t)
 ;; Make tab characters display as 4 spaces wide
 (setq-default tab-width 4)
-;;In C mode, make TAB key insert an actual tab character 
+;;In C mode, make TAB key insert an actual tab character
 (require 'cc-mode)
 (define-key c-mode-map (kbd "TAB") 'self-insert-command)
 (custom-set-variables
@@ -25,12 +38,14 @@
  '(ansi-color-faces-vector
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
-   ["#2e3436" "#a40000" "#4e9a06" "#c4a000" "#204a87" "#5c3566" "#729fcf" "#eeeeec"])
+   ["#2e3436" "#a40000" "#4e9a06" "#c4a000" "#204a87" "#5c3566" "#729fcf"
+	"#eeeeec"])
  '(custom-enabled-themes '(tsdh-dark))
  '(debug-on-error t)
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(ispell-dictionary nil)
+ '(package-selected-packages '(company flycheck tide))
  '(tab-bar-show t)
  '(window-divider-default-places t))
 
@@ -58,12 +73,15 @@
   (term "/bin/bash"))
 
 (electric-pair-mode 1)
+(defvar electric-pair-pairs nil
+  "List of extra pairs for `electric-pair-mode'.")
 (setq electric-pair-pairs '(
 							(?\{ . ?\})
 							(?\( . ?\))
 							(?\[ . ?\])
 							(?\" . ?\")
 							(?\' . ?\')
+							(?\< . ?\>)
 							))
 
 (setq switch-to-buffer-in-dedicated-window 'ignore)
@@ -85,6 +103,7 @@
               ;; Top-right = Dired
               (select-window right)
               (dired default-directory)
+			  (set-window-dedicated-p (selected-window) t)
 
               ;; Bottom = terminal
               (select-window bottom)
@@ -98,6 +117,24 @@
 ;; Show hidden files
 (setq x-gtk-show-hidden-files t)
 (setq dired-listing-switches "-a")
+
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . web-mode))
+
+(declare-function flycheck-add-next-checker "flycheck")
+(declare-function flycheck-add-mode "flycheck")
+
+(use-package company
+  :ensure t)
+
+;; Set Flycheck
+(use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode t)
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  )
 
 (provide '.emacs)
 ;;; .emacs ends here
