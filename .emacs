@@ -1,3 +1,9 @@
+;;; .emacs --- Emacs configuration
+
+;;; Commentary:
+
+;;; Code:
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -88,3 +94,10 @@
 			  ;; Lock this window to always show the terminal buffer
 			  (set-window-dedicated-p (selected-window) t)
 			  )))
+
+;; Show hidden files
+(setq x-gtk-show-hidden-files t)
+(setq dired-listing-switches "-a")
+
+(provide '.emacs)
+;;; .emacs ends here
