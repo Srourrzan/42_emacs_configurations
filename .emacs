@@ -49,6 +49,25 @@
  '(tab-bar-show t)
  '(window-divider-default-places t))
 
+(defun tab-bar-sync-active-tab-to-background ()
+  "Make active tab in `tab-bar-mode` match the buffer background."
+  (when (display-graphic-p) ;;only if using a GUI where colors work
+	(let* ((bg (face-attribute 'default :background (selected-frame))))
+	  ;; Set active tab to have same background
+	  (set-face-attribute 'tab-bar-tab nil
+						  :background bg
+						  :foreground (face-attribute 'default :foreground (selected-frame))
+						  :box nil
+						  :underline nil
+						  )
+	  )))
+
+;; Run tab-bar background on startup
+(add-hook 'tab-bar-mode-hook #'tab-bar-sync-active-tab-to-background)
+;; Run tab-bar background when theme changes
+(advice-add 'load-theme :after (lambda (&rest _) (tab-bar-sync-active-tab-to-background)))
+
+
 (defun move-line-up()
   "Move the current line up."
   (interactive)
