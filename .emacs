@@ -45,7 +45,7 @@
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(ispell-dictionary nil)
- '(package-selected-packages '(company flycheck tide))
+ '(package-selected-packages '(company flycheck magit tide))
  '(tab-bar-show t)
  '(window-divider-default-places t))
 
@@ -82,37 +82,40 @@
 							(?\" . ?\")
 							(?\' . ?\')
 							(?\< . ?\>)
+							(?\` . ?\`)
 							))
 
 (setq switch-to-buffer-in-dedicated-window 'ignore)
 
-(add-hook 'after-init-hook
-          (lambda ()
-            ;;(delete-other-windows) ;; start clean
+(defun my-startup-layout ()
+  "set up three-window layout. Top-left shows file (if any) or *scratch*."
+  (let ((top (selected-window))
+        bottom right)
+    (setq bottom (split-window-below -8))
+    (setq right  (split-window-right -10))
 
-            ;; Split into top and bottom
-            (let ((top (selected-window))
-                  bottom right)
-              (setq bottom (split-window-below -8)) ;; bottom window
-              (setq right (split-window-right -10))  ;; top-right window
+    ;; Top-left: file buffer (if loading a file), else *scratch*
+    (select-window top)
+    (if buffer-file-name
+        (switch-to-buffer (current-buffer)) ;; keep the file buffer
+      (switch-to-buffer "*scratch*"))
 
-              ;; Top-left = *scratch*
-              (select-window top)
-              (switch-to-buffer "*scratch*")
+    ;; Top-right: Dired
+    (select-window right)
+    (dired default-directory)
+    (set-window-dedicated-p (selected-window) t)
 
-              ;; Top-right = Dired
-              (select-window right)
-              (dired default-directory)
-			  (set-window-dedicated-p (selected-window) t)
+    ;; Bottom: Terminal
+    (select-window bottom)
+    (if (fboundp 'vterm) (vterm) (ansi-term (getenv "SHELL")))
+    (set-window-dedicated-p (selected-window) t)
 
-              ;; Bottom = terminal
-              (select-window bottom)
-              (if (fboundp 'vterm)
-                  (vterm)
-                (ansi-term (getenv "SHELL")))
-			  ;; Lock this window to always show the terminal buffer
-			  (set-window-dedicated-p (selected-window) t)
-			  )))
+    (select-window top)
+  ))
+
+;; Run this after Emacs has opened buffers for files from command line
+(add-hook 'window-setup-hook #'my-startup-layout)
+
 
 ;; Show hidden files
 (setq x-gtk-show-hidden-files t)
@@ -135,6 +138,20 @@
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
   )
+
+;; Ensure Magit is available
+(use-package magit
+  :ensure t)
+
+;; keybinding to quickly diff current buffer vs HEAD
+(defun my-git-diff-current-file ()
+  "Show git diff of current file vs HEAD."
+  (interactive)
+  (if (and buffer-file-name (vc-backend buffer-file-name))
+	  (magit-diff-buffer-file)
+	(message "Not a Git-controlled file.")))
+
+(global-set-key (kbd "C-c g d") #'my-git-diff-current-file)
 
 (provide '.emacs)
 ;;; .emacs ends here
