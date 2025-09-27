@@ -17,6 +17,13 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
+;; Install vterm
+(use-package vterm
+  :ensure t
+  :commands vterm
+  :config
+  (setq vterm-always-compile-module t))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -45,7 +52,7 @@
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(ispell-dictionary nil)
- '(package-selected-packages '(company flycheck magit tide))
+ '(package-selected-packages '(company flycheck magit tide vterm))
  '(tab-bar-show t)
  '(window-divider-default-places t))
 
@@ -126,8 +133,14 @@
 
     ;; Bottom: Terminal
     (select-window bottom)
-    (if (fboundp 'vterm) (vterm) (ansi-term (getenv "SHELL")))
-    (set-window-dedicated-p (selected-window) t)
+	(cond
+	 ((and (fboundp 'vterm) (require 'vterm nil t))
+	  (vterm))
+	 (t
+	  (ansi-term (getenv "SHELL"))))
+	(set-window-dedicated-p (selected-window) t)
+    ;; (if (fboundp 'vterm) (vterm) (ansi-term (getenv "SHELL")))
+    ;; (set-window-dedicated-p (selected-window) t)
 
     (select-window top)
   ))
