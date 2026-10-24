@@ -15,10 +15,9 @@
 
 (setq package-archives
       '(("gnu"   . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")
-        ("org"   . "https://orgmode.org/elpa/")))
+        ("melpa" . "https://melpa.org/packages/")))
 
-(package-initialize)
+(setq package-enable-at-startup t)
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -30,16 +29,19 @@
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  )
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(ansi-color-faces-vector
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
-   ["#2e3436" "#a40000" "#4e9a06" "#c4a000" "#204a87" "#5c3566" "#729fcf" "#eeeeec"])
+   ["#2e3436" "#a40000" "#4e9a06" "#c4a000" "#204a87" "#5c3566" "#729fcf"
+	"#eeeeec"])
  '(column-number-mode t)
  '(custom-enabled-themes '(modus-operandi-tinted))
  '(debug-on-error t)
@@ -50,7 +52,10 @@
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(ispell-dictionary nil)
- '(package-selected-packages '(company flycheck magit rust-mode sr-speedbar tide toml-mode meson-mode web-mode vterm))
+ '(package-selected-packages
+   '(apheleia company dockerfile-mode flycheck magit meson-mode
+			  nginx-mode rust-mode sr-speedbar tide toml-mode vterm
+			  web-mode yaml-mode))
  '(speedbar-use-images t)
  '(tab-bar-mode t)
  '(tab-bar-show t)
@@ -80,6 +85,40 @@
 ;; 4. Language-Specific Hooks & Configurations
 ;; -----------------------------------------------------------------------------
 
+;; --- Docker & Nginx Modes (MUST be declared before apheleia) ---
+(use-package dockerfile-mode
+  :ensure t
+  :mode ("Dockerfile\\'" "Dockerfile\\..*\\'"))
+
+(use-package nginx-mode
+  :ensure t
+  :mode ("/nginx/.*\\.conf\\'" "\\.nginx\\'"))
+
+(use-package yaml-mode
+  :ensure t
+  :mode ("\\.ya?ml\\'" . yaml-mode)
+  ;; Explicitly match docker-compose variants
+  :init
+  (add-to-list 'auto-mode-alist '("docker-compose.*\\.ya?ml\\'" . yaml-mode))
+  (add-to-list 'auto-mode-alist '("compose.*\\.ya?ml\\'" . yaml-mode)))
+
+;; --- Apheleia: Unified Format-on-Save ---
+(use-package apheleia
+  :ensure t
+  :after (yaml-mode)
+  :config
+  ;; Existing Docker/Nginx formatters...
+  (setf (alist-get 'dockfmt apheleia-formatters) '("dockfmt" "fmt" "-"))
+  (setf (alist-get 'nginxfmt apheleia-formatters) '("nginxfmt" "-"))
+
+  ;; NEW: Prettier for YAML/Docker Compose
+  (setf (alist-get 'prettier-yaml apheleia-formatters)
+        '("prettier" "--stdin-filepath" filepath "--parser" "yaml"))
+
+  ;; Map yaml-mode to prettier (covers docker-compose files)
+  (setf (alist-get 'yaml-mode apheleia-mode-alist) 'prettier-yaml)
+
+  (apheleia-global-mode +1))
 ;; --- Rust ---
 (require 'rust-mode)
 (add-hook 'rust-mode-hook
